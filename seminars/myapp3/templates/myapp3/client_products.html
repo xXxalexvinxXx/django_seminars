@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Товары клиента {{ client.name }}</title>
+    <style>
+        .period { margin-bottom: 30px; }
+        .product-list { list-style: none; padding-left: 0; }
+        .product-item { margin: 5px 0; padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Товары клиента: {{ client.name }}</h1>
+
+    <div class="period">
+        <h2>За последние 7 дней</h2>
+        <ul class="product-list">
+            {% for product in products_data.week %}
+                <li class="product-item">
+                    {{ product.name }} - {{ product.price }} руб.
+                    <br><small>Последний заказ: {{ product.orderitem_set.first.order.order_date|date:"d.m.Y H:i" }}</small>
+                </li>
+            {% empty %}
+                <li>Нет заказов за этот период</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="period">
+        <h2>За последние 30 дней</h2>
+        <ul class="product-list">
+            {% for product in products_data.month %}
+                <li class="product-item">
+                    {{ product.name }} - {{ product.price }} руб.
+                    <br><small>Последний заказ: {{ product.orderitem_set.first.order.order_date|date:"d.m.Y H:i" }}</small>
+                </li>
+            {% empty %}
+                <li>Нет заказов за этот период</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="period">
+        <h2>За последние 365 дней</h2>
+        <ul class="product-list">
+            {% for product in products_data.year %}
+                <li class="product-item">
+                    {{ product.name }} - {{ product.price }} руб.
+                    <br><small>Последний заказ: {{ product.orderitem_set.first.order.order_date|date:"d.m.Y H:i" }}</small>
+                </li>
+            {% empty %}
+                <li>Нет заказов за этот период</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
