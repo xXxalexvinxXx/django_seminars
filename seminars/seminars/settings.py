@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'myapp2.middleware.AutoCreateClientProfile',
 ]
 
 ROOT_URLCONF = 'seminars.urls'
@@ -84,7 +85,7 @@ AUTH_USER_MODEL = 'auth.USER'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -123,29 +124,28 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters':{
-       'verbose':{
-           'format': '{levelname} {asctime} {module} {process} {thread} {message}',
-           'style': '{',
-       },
-        'simple':{
-          'format': '%(levelname)s %(message)s'
+        'verbose':{
+            'format': '{levelname} {asctime} {module} {process} {thread} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
         },
     },
-    'handlers': {
+    'handlers':{
         'console':{
-            'level': 'INFO',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
         'file': {
-            'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'log/visits.log',
+            'filename': 'log/django.log',
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'page_visits': {
-            'handlers': ['condole', 'file'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': True,
         },
@@ -159,7 +159,7 @@ LOGGING = {
 STATIC_URL = 'static/'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
