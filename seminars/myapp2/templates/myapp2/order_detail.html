@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Заказ #{{ object.pk }}{% endblock %}
+
+{% block content %}
+<h1>Заказ #{{ object.pk }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p>Дата: {{ object.order_date|date:"d.m.Y H:i" }}</p>
+        <p>Сумма: {{ object.total_amount }} руб.</p>
+        <p>Статус: {{ object.get_status_display }}</p>
+        {% if user.is_staff %}
+        <p>Клиент: {{ object.client.user.username }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

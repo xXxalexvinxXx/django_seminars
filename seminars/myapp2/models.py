@@ -1,15 +1,19 @@
+from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import (
     MinLengthValidator,
     MinValueValidator,
     MaxValueValidator,
-    RegexValidator
+    RegexValidator,
+    EmailValidator
 )
-from django.db import models
 from django.db.models import F, Sum
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 import re
+
+User = get_user_model()
 
 
 def validate_non_empty(value):
@@ -18,20 +22,11 @@ def validate_non_empty(value):
 
 
 class Client(models.Model):
-    name = models.CharField(
-        'ФИО',
-        max_length=100,
-        validators=[
-            validate_non_empty,
-            MinLengthValidator(3, "Имя должно содержать минимум 3 символа"),
-            RegexValidator(
-                regex=r'^[a-zA-Zа-яА-ЯёЁ\-\s]+$',
-                message='Имя может содержать только буквы и дефис',
-                code='invalid_name'
-            )
-        ]
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='client_profile'
     )
-    email = models.EmailField('Email', unique=True, validators=[validate_non_empty])
     phone = models.CharField(
         'Телефон',
         max_length=20,
@@ -39,19 +34,25 @@ class Client(models.Model):
             validate_non_empty,
             RegexValidator(
                 regex=r'^(\+?\d{1})?[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$',
-                message='Введите номер в формате: +X (XXX) XXX-XX-XX',
-                code='invalid_phone'
+                message='Введите номер в формате: +X (XXX) XXX-XX-XX'
             )
         ]
     )
+    email = models.EmailField(
+        'Электронная почта',
+        validators=[
+            EmailValidator(message="Введите корректный email адрес"),
+            validate_non_empty
+        ],
+        unique=True
+    )
     personal_discount = models.DecimalField(
         'Персональная скидка',
-        max_digits=4,
+        max_digits=5,
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(30)]
     )
-    address = models.TextField('Адрес')
     registration_date = models.DateTimeField('Дата регистрации', auto_now_add=True)
 
     def clean(self):
@@ -66,7 +67,7 @@ class Client(models.Model):
         verbose_name_plural = 'Клиенты'
 
     def __str__(self):
-        return f"{self.name} ({self.email})"
+        return f"{self.user.get_full_name()} ({self.phone})"
 
 
 class Product(models.Model):
@@ -74,13 +75,18 @@ class Product(models.Model):
         ('add', 'Складывается с персональной'),
         ('max', 'Максимальная из доступных'),
         ('override', 'Перекрывает все скидки'),
-        ('none', 'Нет скидки')
     )
 
     name = models.CharField(
         'Название',
         max_length=100,
-        validators=[validate_non_empty]
+        validators=[
+            validate_non_empty,
+            RegexValidator(
+                regex=r'^[a-zA-Zа-яА-ЯёЁ0-9\-\s]+$',
+                message='Название может содержать только буквы, цифры и дефис'
+            )
+        ]
     )
     description = models.TextField('Описание', blank=True)
     price = models.DecimalField(
@@ -90,7 +96,6 @@ class Product(models.Model):
         validators=[MinValueValidator(0)]
     )
     quantity = models.PositiveIntegerField('Количество на складе', default=0)
-    added_date = models.DateTimeField('Дата добавления', auto_now_add=True)
     discount = models.DecimalField(
         'Скидка',
         max_digits=5,
@@ -102,29 +107,33 @@ class Product(models.Model):
         'Тип скидки',
         max_length=10,
         choices=DISCOUNT_TYPES,
-        default='none'
+        default='max'
     )
+    added_date = models.DateTimeField('Дата добавления', auto_now_add=True)
     image = models.ImageField('Изображение', upload_to='products/', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
+        ordering = ['-added_date']
 
     def __str__(self):
         return f"{self.name} - {self.price} руб."
 
 
 class Order(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'Новый'),
+        ('processing', 'В обработке'),
+        ('completed', 'Завершен'),
+        ('canceled', 'Отменен')
+    ]
+
     client = models.ForeignKey(
         Client,
         on_delete=models.CASCADE,
-        verbose_name='Клиент',
-        related_name='orders'
-    )
-    products = models.ManyToManyField(
-        Product,
-        through='OrderItem',
-        verbose_name='Товары'
+        related_name='orders',
+        verbose_name='Клиент'
     )
     total_amount = models.DecimalField(
         'Сумма заказа',
@@ -133,11 +142,6 @@ class Order(models.Model):
         default=0
     )
     order_date = models.DateTimeField('Дата заказа', auto_now_add=True)
-    STATUS_CHOICES = [
-        ('new', 'Новый'),
-        ('processing', 'В обработке'),
-        ('completed', 'Завершен'),
-    ]
     status = models.CharField(
         'Статус',
         max_length=20,
@@ -151,7 +155,7 @@ class Order(models.Model):
         ordering = ['-order_date']
 
     def __str__(self):
-        return f"Заказ №{self.id} - {self.client.name}"
+        return f"Заказ №{self.id} - {self.client}"
 
     def update_total(self):
         self.total_amount = self.items.aggregate(
@@ -211,7 +215,6 @@ class OrderItem(models.Model):
         # Применение скидки к цене
         self.price = self.product.price * (100 - self.applied_discount) / 100
 
-        # Проверка итоговой цены
         if self.price < 0:
             raise ValidationError("Цена товара не может быть отрицательной")
 
