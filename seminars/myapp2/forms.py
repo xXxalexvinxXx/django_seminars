@@ -1,10 +1,12 @@
 from django import forms
-from .models import Client, Product, Order
+
+from .models import Client, Order, Product
+
 
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['name', 'email', 'phone', 'address', 'personal_discount']
+        fields = ['user', 'email', 'phone','personal_discount']
         widgets = {
             'address': forms.Textarea(attrs={'rows': 3}),
         }

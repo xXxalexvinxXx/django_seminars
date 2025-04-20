@@ -9,11 +9,11 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 import os.path
 from pathlib import Path
-import os
 
-from django.conf.global_settings import MEDIA_URL, AUTH_USER_MODEL
+from django.conf.global_settings import AUTH_USER_MODEL, MEDIA_URL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
