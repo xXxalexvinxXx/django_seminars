@@ -181,7 +181,7 @@ def add_order_item(request, order_id):
             if product.quantity < quantity:
                 messages.error(request, f"Недостаточно товара. Доступно: {product.quantity}")
                 return redirect('myapp2:order_detail', pk=order_id)
-            
+                
             # Создание позиции заказа
             order_item = OrderItem(
                 order=order,
@@ -192,12 +192,12 @@ def add_order_item(request, order_id):
             order_item.save()
             
             messages.success(request, "Товар добавлен в заказ")
-        
+            
         except Product.DoesNotExist:
             messages.error(request, "Товар не найден")
         except Exception as e:
             messages.error(request, f"Ошибка: {str(e)}")
-    
+            
     return redirect('myapp2:order_detail', pk=order_id)
 
 def update_order_item(request, item_id):
@@ -223,10 +223,10 @@ def update_order_item(request, item_id):
             order_item.save()
             
             messages.success(request, "Позиция заказа обновлена")
-        
+            
         except Exception as e:
             messages.error(request, f"Ошибка: {str(e)}")
-    
+            
     return redirect('myapp2:order_detail', pk=order_item.order.id)
 
 def delete_order_item(request, item_id):
@@ -238,7 +238,7 @@ def delete_order_item(request, item_id):
         messages.success(request, "Позиция удалена из заказа")
     except Exception as e:
         messages.error(request, f"Ошибка: {str(e)}")
-    
+        
     return redirect('myapp2:order_detail', pk=order_id)
 
 # API функции
@@ -254,3 +254,4 @@ def get_product_info(request, product_id):
         })
     except Product.DoesNotExist:
         return JsonResponse({'error': 'Товар не найден'}, status=404)
+    

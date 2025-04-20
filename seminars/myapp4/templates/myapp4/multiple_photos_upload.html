@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Загрузка нескольких фотографий{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Загрузка нескольких фотографий</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.product.id_for_label }}" class="form-label">{{ form.product.label }}</label>
+                            {{ form.product }}
+                            {% if form.product.help_text %}
+                                <small class="form-text text-muted">{{ form.product.help_text }}</small>
+                            {% endif %}
+                            {% if form.product.errors %}
+                                <div class="alert alert-danger mt-1">
+                                    {{ form.product.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.photos.id_for_label }}" class="form-label">{{ form.photos.label }}</label>
+                            {{ form.photos }}
+                            {% if form.photos.help_text %}
+                                <small class="form-text text-muted">{{ form.photos.help_text }}</small>
+                            {% endif %}
+                            {% if form.photos.errors %}
+                                <div class="alert alert-danger mt-1">
+                                    {{ form.photos.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.set_first_as_main }}
+                            <label for="{{ form.set_first_as_main.id_for_label }}" class="form-check-label">{{ form.set_first_as_main.label }}</label>
+                            {% if form.set_first_as_main.help_text %}
+                                <small class="form-text text-muted d-block">{{ form.set_first_as_main.help_text }}</small>
+                            {% endif %}
+                            {% if form.set_first_as_main.errors %}
+                                <div class="alert alert-danger mt-1">
+                                    {{ form.set_first_as_main.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 preview-container" id="image-preview-container" style="display: none;">
+                            <h4>Предварительный просмотр</h4>
+                            <div class="row" id="image-previews"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Загрузить фотографии</button>
+                            <a href="{% url 'myapp4:product_photos_list' %}" class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Предварительный просмотр выбранных изображений
+    document.addEventListener('DOMContentLoaded', function() {
+        const photosInput = document.getElementById('{{ form.photos.id_for_label }}');
+        const previewContainer = document.getElementById('image-preview-container');
+        const previewsContainer = document.getElementById('image-previews');
+        
+        photosInput.addEventListener('change', function() {
+            previewsContainer.innerHTML = '';
+            if (this.files.length > 0) {
+                previewContainer.style.display = 'block';
+                
+                Array.from(this.files).forEach((file, index) => {
+                    if (!file.type.startsWith('image/')) return;
+                    
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 col-sm-6 mb-3';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card h-100';
+                    
+                    const img = document.createElement('img');
+                    img.className = 'card-img-top';
+                    img.style.height = '150px';
+                    img.style.objectFit = 'cover';
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body';
+                    
+                    const fileName = document.createElement('p');
+                    fileName.className = 'card-text small text-truncate';
+                    fileName.title = file.name;
+                    fileName.textContent = file.name;
+                    
+                    cardBody.appendChild(fileName);
+                    card.appendChild(img);
+                    card.appendChild(cardBody);
+                    col.appendChild(card);
+                    previewsContainer.appendChild(col);
+                });
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %} 

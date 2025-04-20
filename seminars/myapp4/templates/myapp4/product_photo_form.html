@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление фотографии{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        {% if product %}
+                            Добавление фотографии для товара "{{ product.name }}"
+                        {% else %}
+                            Добавление фотографии товара
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.photo.id_for_label }}" class="form-label">{{ form.photo.label }}</label>
+                            {{ form.photo }}
+                            {% if form.photo.help_text %}
+                                <small class="form-text text-muted">{{ form.photo.help_text }}</small>
+                            {% endif %}
+                            {% if form.photo.errors %}
+                                <div class="alert alert-danger mt-1">
+                                    {{ form.photo.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.is_main }}
+                            <label for="{{ form.is_main.id_for_label }}" class="form-check-label">{{ form.is_main.label }}</label>
+                            {% if form.is_main.help_text %}
+                                <small class="form-text text-muted d-block">{{ form.is_main.help_text }}</small>
+                            {% endif %}
+                            {% if form.is_main.errors %}
+                                <div class="alert alert-danger mt-1">
+                                    {{ form.is_main.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                            {% if product %}
+                                <a href="{% url 'myapp2:product_detail' pk=product.id %}" class="btn btn-secondary">Отмена</a>
+                            {% else %}
+                                <a href="{% url 'myapp4:product_photos_list' %}" class="btn btn-secondary">Отмена</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

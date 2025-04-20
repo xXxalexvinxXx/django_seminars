@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Фотографии товаров{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                {% if selected_product %}
+                    Фотографии товара "{{ selected_product.name }}"
+                {% else %}
+                    Все фотографии товаров
+                {% endif %}
+            </h2>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if selected_product %}
+                <a href="{% url 'myapp4:add_product_photo' product_id=selected_product.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить фото
+                </a>
+                <a href="{% url 'myapp2:product_detail' pk=selected_product.id %}" class="btn btn-secondary ms-2">
+                    <i class="fas fa-arrow-left"></i> К товару
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Форма поиска -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="get" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Поиск по названию товара" 
+                       value="{{ search_query }}">
+                <button type="submit" class="btn btn-outline-primary">Поиск</button>
+                {% if search_query or product_id %}
+                    <a href="{% url 'myapp4:product_photos_list' %}" class="btn btn-outline-secondary ms-2">Сбросить</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    {% if photos %}
+        <div class="row">
+            {% for photo in photos %}
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ photo.photo.url }}" class="card-img-top" alt="{{ photo.product.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'myapp2:product_detail' pk=photo.product.id %}">
+                                    {{ photo.product.name }}
+                                </a>
+                                {% if photo.is_main %}
+                                    <span class="badge bg-primary ms-2">Основное</span>
+                                {% endif %}
+                            </h5>
+                            <p class="card-text text-muted small">
+                                Добавлено: {{ photo.created_at|date:"d.m.Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            {% if not photo.is_main %}
+                                <form method="post" action="{% url 'myapp4:set_main_photo' pk=photo.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">Сделать основным</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted">Основное фото</span>
+                            {% endif %}
+                            
+                            <a href="{% url 'myapp4:delete_product_photo' pk=photo.id %}" class="btn btn-outline-danger btn-sm">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Пагинация -->
+        {% if is_paginated %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if product_id %}&product_id={{ product_id }}{% endif %}" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if product_id %}&product_id={{ product_id }}{% endif %}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if product_id %}&product_id={{ product_id }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if product_id %}&product_id={{ product_id }}{% endif %}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if product_id %}&product_id={{ product_id }}{% endif %}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="alert alert-info">
+            {% if search_query or product_id %}
+                По вашему запросу ничего не найдено.
+            {% else %}
+                Пока нет загруженных фотографий товаров.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
