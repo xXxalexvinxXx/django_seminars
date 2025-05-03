@@ -10,6 +10,7 @@ urlpatterns = [
     path('clients/create/', views.ClientCreateView.as_view(), name='client_create'),
     path('clients/<int:pk>/edit/', views.ClientUpdateView.as_view(), name='client_edit'),
     path('clients/<int:pk>/delete/', views.ClientDeleteView.as_view(), name='client_delete'),
+    path('clients/<int:pk>/update/', views.ClientUpdateView.as_view(), name='client_update'),
     
     # Товары
     path('products/', views.ProductListView.as_view(), name='product_list'),
@@ -17,7 +18,7 @@ urlpatterns = [
     path('products/create/', views.ProductCreateView.as_view(), name='product_create'),
     path('products/<int:pk>/edit/', views.ProductUpdateView.as_view(), name='product_edit'),
     path('products/<int:pk>/delete/', views.ProductDeleteView.as_view(), name='product_delete'),
-    path('products/<int:product_id>/info/', views.get_product_info, name='product_info'),
+    # path('products/<int:product_id>/info/', views.get_product_info, name='product_info'),
     
     # Заказы
     path('orders/', views.OrderListView.as_view(), name='order_list'),

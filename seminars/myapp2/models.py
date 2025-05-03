@@ -111,6 +111,10 @@ class Product(models.Model):
     )
     added_date = models.DateTimeField('Дата добавления', auto_now_add=True)
     image = models.ImageField('Изображение', upload_to='products/', blank=True, null=True)
+    
+    
+    def get_main_photo(self):
+        return self.photos.filter(is_main=True).first() or self.photos.first()
 
     class Meta:
         verbose_name = 'Товар'

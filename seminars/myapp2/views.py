@@ -71,6 +71,7 @@ class ProductListView(ListView):
     context_object_name = 'products'
     paginate_by = 10
     
+  
     def get_queryset(self):
         queryset = super().get_queryset()
         search_query = self.request.GET.get('search', '')
@@ -79,11 +80,14 @@ class ProductListView(ListView):
                 Q(name__icontains=search_query) |
                 Q(description__icontains=search_query)
             )
-        return queryset
+        return queryset.prefetch_related('photos')
 
 class ProductDetailView(DetailView):
     model = Product
     template_name = 'myapp2/product_detail.html'
+    
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related('photos')
 
 class ProductCreateView(CreateView):
     model = Product
