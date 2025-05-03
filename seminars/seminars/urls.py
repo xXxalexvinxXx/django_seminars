@@ -25,7 +25,6 @@ urlpatterns = [
     path('', include('myapp1.urls')),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('orders/', include('myapp2.urls')),
     path('myapp2/', include('myapp2.urls')),
     path('myapp3/', include('myapp3.urls')),
     path('myapp4/', include('myapp4.urls')),
